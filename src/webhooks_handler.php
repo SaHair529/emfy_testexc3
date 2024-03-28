@@ -29,19 +29,9 @@ $apiClient->setAccessToken($longLivedToken)
     ->setAccountBaseDomain($_ENV['SUBDOMAIN']);
 
 // Создание примечаний
-if (isset($requestData['leads']['add'])) {
-    $lead = $requestData['leads']['add'][0];
-    addNote($lead['id'], $text, EntityTypesInterface::LEADS, $apiClient);
-}
-elseif (isset($requestData['contacts']['add'])) {
-    $contact = $requestData['contacts']['add'][0];
-    addNote($contact['id'], $text, EntityTypesInterface::CONTACTS, $apiClient);
-}
-elseif (isset($requestData['leads']['update'])) {
-    $lead = $requestData['leads']['update'][0];
-    addNote($lead['id'], $text, EntityTypesInterface::LEADS, $apiClient);
-}
-elseif (isset($requestData['contacts']['update'])) {
-    $contact = $requestData['contacts']['update'][0];
-    addNote($contact['id'], $text, EntityTypesInterface::CONTACTS, $apiClient);
-}
+$entityType = isset($requestData['leads']) ? 'leads' : 'contacts';
+$action = isset($requestData['add']) ? 'add' : 'update';
+$entity = $requestData[$entityType][$action][0];
+
+$text = prepareNoteText($action, $entity);
+addNote($entity['id'], $text, $entityType, $apiClient);
