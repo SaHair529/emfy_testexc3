@@ -7,6 +7,8 @@ use AmoCRM\Models\NoteType\ServiceMessageNote;
 
 require_once __DIR__.'/../vendor/autoload.php';
 
+const ENTITIES_DIRPATH = __DIR__.'/../var/entities';
+
 /**
  * Добавление примечания в сущность типа $entityType
  * @param int $entityId - id сущности
@@ -49,4 +51,65 @@ function prepareNoteText(string $action, array $entity): string {
     }
 
     return '';
+}
+
+/**
+ * Сохранение состояния сущности в json файле для поиска измененных полей при создании примечания
+ * @param string $entityType
+ * @param array $entity
+ * @return void
+ */
+function saveEntityState(string $entityType, array $entity): void
+{
+    $entityFilepath = ENTITIES_DIRPATH."/$entityType/{$entity['id']}.json";
+    file_put_contents($entityFilepath, json_encode($entity, JSON_UNESCAPED_UNICODE));
+}
+
+/**
+ * Получение последнего состояния сущности из файла
+ * @param int $id
+ * @param string $entityType
+ * @return array
+ */
+function getEntityState(int $id, string $entityType): array
+{
+    $entityFilepath = ENTITIES_DIRPATH."/$entityType/$id.json";
+    return json_decode(file_get_contents($entityFilepath), true);
+}
+
+/**
+ * Получение измененных полей путем сравнения сохраненного в файле состояния с актуальным состоянием из запроса
+ * @param array $updatedEntity
+ * @param string $entityType
+ * @return array
+ */
+function getEntityChangedFields(array $updatedEntity, string $entityType): array
+{
+    $changedFields = [];
+    $oldEntity = getEntityState($updatedEntity['id'], $entityType);
+
+    if ($oldEntity['name'] !== $updatedEntity['name'])
+        $changedFields['Имя'] = $updatedEntity['name'];
+    if ($entityType === 'leads' && $oldEntity['price'] !== $updatedEntity['price'])
+        $changedFields['Бюджет'] = $updatedEntity['price'];
+
+    $updatedCustomFields = array_column($updatedEntity['custom_fields'] ?? [], null, 'id');
+    $oldCustomFields = array_column($oldEntity['custom_fields'] ?? [], null, 'id');
+
+    foreach ($updatedCustomFields as $fieldId => $field) {
+        if (!isset($oldCustomFields[$fieldId])) {
+            $changedFields[$field['name']] = $field['values'][0]['value'];
+            continue;
+        }
+
+        if ($oldCustomFields[$fieldId]['values'][0]['value'] !== $field['values'][0]['value'])
+            $changedFields[$field['name']] = $field['values'][0]['value'];
+    }
+
+    foreach ($oldCustomFields as $fieldId => $field) {
+        if (!isset($updatedCustomFields[$fieldId]))
+            $changedFields[$field['name']] = 'Поле очищено';
+    }
+
+    return $changedFields;
 }
