@@ -36,3 +36,5 @@ $entity = $requestData[$entityType][$action][0];
 $text = prepareNoteText($action, $entity, $entityType);
 addNote($entity['id'], $text, $entityType, $apiClient);
 saveEntityState($entityType, $entity);
+
+echo 'ok';
