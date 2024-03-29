@@ -2,8 +2,9 @@
 
 use AmoCRM\Client\AmoCRMApiClient;
 use AmoCRM\Collections\NotesCollection;
+use AmoCRM\Exceptions\AmoCRMApiErrorResponseException;
 use AmoCRM\Exceptions\AmoCRMApiException;
-use AmoCRM\Models\NoteType\ServiceMessageNote;
+use AmoCRM\Models\NoteType\CommonNote;
 
 require_once __DIR__.'/../vendor/autoload.php';
 
@@ -20,10 +21,9 @@ const ENTITIES_DIRPATH = __DIR__.'/../var/entities';
 function addNote(int $entityId, string $text, string $entityType, AmoCRMApiClient $apiClient): void
 {
     $notesCollection = new NotesCollection();
-    $serviceMessageNote = new ServiceMessageNote();
+    $serviceMessageNote = new CommonNote();
     $serviceMessageNote->setEntityId($entityId)
-        ->setText($text)
-        ->setService('Api Library');
+        ->setText($text);
 
     $notesCollection->add($serviceMessageNote);
 
@@ -46,7 +46,7 @@ function prepareNoteText(string $action, array $entity, string $entityType): str
     if ($action === 'add')
         return "{$entity['name']}\nId ответственного: {$entity['responsible_user_id']}\nВремя добавления: ".date('d.m.Y H:i:s', $entity['last_modified']);
     elseif ($action === 'update') {
-        $result = "Время изменения: ".date('d.m.Y H:i:s', $entity['last_modified'])."Измененные поля:\n\n";
+        $result = "Время изменения: ".date('d.m.Y H:i:s', $entity['last_modified'])."\nИзмененные поля:\n\n";
         $changedFields = getEntityChangedFields($entity, $entityType);
         foreach ($changedFields as $fieldName => $fieldValue)
             $result .= "$fieldName: $fieldValue\n";
