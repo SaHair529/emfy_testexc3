@@ -116,3 +116,32 @@ function getEntityChangedFields(array $updatedEntity, string $entityType): array
 
     return $changedFields;
 }
+
+/**
+ * Удобное отображение ошибок из examples амо
+ * @param AmoCRMApiException $e
+ * @return void
+ */
+function printError(AmoCRMApiException $e): void
+{
+    $errorTitle = $e->getTitle();
+    $code = $e->getCode();
+    $debugInfo = var_export($e->getLastRequestInfo(), true);
+
+    $validationErrors = null;
+    if ($e instanceof AmoCRMApiErrorResponseException) {
+        $validationErrors = var_export($e->getValidationErrors(), true);
+    }
+
+    $error = <<<EOF
+Error: $errorTitle
+Code: $code
+Debug: $debugInfo
+EOF;
+
+    if ($validationErrors !== null) {
+        $error .= PHP_EOL . 'Validation-Errors: ' . $validationErrors . PHP_EOL;
+    }
+
+    echo '<pre>' . $error . '</pre>';
+}

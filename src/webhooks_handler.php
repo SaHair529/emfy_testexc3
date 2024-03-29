@@ -29,11 +29,11 @@ $apiClient = new AmoCRMApiClient();
 $longLivedToken = new LongLivedAccessToken($_ENV['LONGLIVING_TOKEN']);
 
 $apiClient->setAccessToken($longLivedToken)
-    ->setAccountBaseDomain($_ENV['SUBDOMAIN']);
+    ->setAccountBaseDomain($_ENV['AMO_DOMAIN']);
 
 // Создание примечаний
 $entityType = isset($requestData['leads']) ? 'leads' : 'contacts';
-$action = isset($requestData['add']) ? 'add' : 'update';
+$action = isset($requestData[$entityType]['add']) ? 'add' : 'update';
 $entity = $requestData[$entityType][$action][0];
 
 $text = prepareNoteText($action, $entity, $entityType);
