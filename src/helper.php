@@ -42,12 +42,15 @@ function addNote(int $entityId, string $text, string $entityType, AmoCRMApiClien
  * @param array $entity - сущность amocrm, из которой будут извлекаться данные для текста
  * @return string - текст примечания
  */
-function prepareNoteText(string $action, array $entity): string {
+function prepareNoteText(string $action, array $entity, string $entityType): string {
     if ($action === 'add')
         return "{$entity['name']}\nId ответственного: {$entity['responsible_user_id']}\nВремя добавления: ".date('d.m.Y H:i:s', $entity['last_modified']);
     elseif ($action === 'update') {
-        // TODO Добавить измененные поля сущности в строку
-        return "Время изменения: ".date('d.m.Y H:i:s', $entity['last_modified']);
+        $result = "Время изменения: ".date('d.m.Y H:i:s', $entity['last_modified'])."Измененные поля:\n\n";
+        $changedFields = getEntityChangedFields($entity, $entityType);
+        foreach ($changedFields as $fieldName => $fieldValue)
+            $result .= "$fieldName: $fieldValue\n";
+        return $result;
     }
 
     return '';

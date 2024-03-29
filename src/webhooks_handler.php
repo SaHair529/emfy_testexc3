@@ -33,5 +33,6 @@ $entityType = isset($requestData['leads']) ? 'leads' : 'contacts';
 $action = isset($requestData['add']) ? 'add' : 'update';
 $entity = $requestData[$entityType][$action][0];
 
-$text = prepareNoteText($action, $entity);
+$text = prepareNoteText($action, $entity, $entityType);
 addNote($entity['id'], $text, $entityType, $apiClient);
+saveEntityState($entityType, $entity);
